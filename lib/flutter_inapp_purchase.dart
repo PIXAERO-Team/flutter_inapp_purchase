@@ -156,7 +156,7 @@ class FlutterInappPurchase {
   ///
   /// Purchase history includes all types of products.
   /// Identical to [getAvailablePurchases] on `iOS`.
-  Future<List<PurchasedItem>?> getPurchaseHistory() async {
+  Future<List<PurchasedItem>> getPurchaseHistory() async {
     if (_platform.isAndroid) {
       Future<dynamic> getInappPurchaseHistory = _channel.invokeMethod(
         'getPurchaseHistoryByType',
@@ -176,7 +176,7 @@ class FlutterInappPurchase {
           await Future.wait([getInappPurchaseHistory, getSubsPurchaseHistory]);
 
       return results.reduce((result1, result2) =>
-          extractPurchased(result1)! + extractPurchased(result2)!);
+          extractPurchased(result1) + extractPurchased(result2));
     } else if (_platform.isIOS) {
       dynamic result = await _channel.invokeMethod('getAvailableItems');
 
@@ -189,7 +189,7 @@ class FlutterInappPurchase {
   /// Get all non-consumed purchases made on `Android` and `iOS`.
   ///
   /// This is identical to [getPurchaseHistory] on `iOS`
-  Future<List<PurchasedItem>?> getAvailablePurchases() async {
+  Future<List<PurchasedItem>> getAvailablePurchases() async {
     if (_platform.isAndroid) {
       dynamic result1 = await _channel.invokeMethod(
         'getAvailableItemsByType',
@@ -205,7 +205,7 @@ class FlutterInappPurchase {
         },
       );
 
-      return extractPurchased(result1)! + extractPurchased(result2)!;
+      return extractPurchased(result1) + extractPurchased(result2);
     } else if (_platform.isIOS) {
       dynamic result = await _channel.invokeMethod('getAvailableItems');
 
@@ -502,12 +502,11 @@ class FlutterInappPurchase {
   /// This method is NOT secure and untested in production.
   Future<bool> checkSubscribed({
     required String sku,
-    Duration duration: const Duration(days: 30),
-    Duration grace: const Duration(days: 3),
+    Duration duration = const Duration(days: 30),
+    Duration grace = const Duration(days: 3),
   }) async {
     if (_platform.isIOS) {
-      var history =
-          await (getPurchaseHistory() as FutureOr<List<PurchasedItem>>);
+      var history = await getPurchaseHistory();
 
       for (var purchase in history) {
         Duration difference =
@@ -518,8 +517,7 @@ class FlutterInappPurchase {
 
       return false;
     } else if (_platform.isAndroid) {
-      var purchases =
-          await (getAvailablePurchases() as FutureOr<List<PurchasedItem>>);
+      var purchases = await getAvailablePurchases();
 
       for (var purchase in purchases) {
         if (purchase.productId == sku) return true;
